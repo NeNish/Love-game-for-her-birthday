@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Game for You! ❤️</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for a more romantic look and feel */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fce4ec 0%, #ffebee 100%); /* Soft pink gradient */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 2rem; /* More rounded corners */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); /* Softer shadow */
+            padding: 2.5rem;
+            max-width: 90%;
+            width: 700px; /* Fixed width for larger screens */
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .countdown-digit {
+            font-size: 3.5rem; /* Larger digits */
+            font-weight: 700;
+            color: #d81b60; /* Deep pink */
+            margin: 0 0.75rem;
+            animation: pulse 1.5s infinite alternate; /* Gentle pulse animation */
+        }
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+        .countdown-label {
+            font-size: 1rem;
+            color: #880e4f; /* Darker pink */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .game-button {
+            background: linear-gradient(45deg, #ff8a80, #e91e63); /* Vibrant button gradient */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; /* Pill shape */
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(233, 30, 99, 0.4);
+        }
+        .game-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(233, 30, 99, 0.6);
+        }
+        .game-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(233, 30, 99, 0.3);
+        }
+        .card {
+            background-color: #f8bbd0; /* Lighter pink for cards */
+            border-radius: 1rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .card.flipped {
+            background-color: #ffcdd2; /* Even lighter pink when flipped */
+            transform: rotateY(180deg);
+        }
+        .card.matched {
+            background-color: #a5d6a7; /* Greenish for matched */
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        .heart-pop-heart {
+            position: absolute;
+            font-size: 2.5rem;
+            cursor: pointer;
+            animation: floatUp 3s forwards ease-out;
+            opacity: 0;
+            transition: transform 0.1s ease-out;
+            color: #ff4081; /* Bright pink heart */
+            text-shadow: 0 0 5px rgba(255, 64, 129, 0.5);
+        }
+        .heart-pop-heart.popped {
+            transform: scale(0);
+            opacity: 0;
+            transition: transform 0.3s ease-in, opacity 0.3s ease-in;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(-150px) scale(1); opacity: 0; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+                width: 95%; /* Wider on smaller screens */
+            }
+            .countdown-digit {
+                font-size: 2.5rem;
+                margin: 0 0.5rem;
+            }
+            .countdown-label {
+                font-size: 0.8rem;
+            }
+            .grid-cols-4 {
+                grid-template-columns: repeat(3, minmax(0, 1fr)); /* Adjust memory game grid */
+            }
+            .card {
+                font-size: 2rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .countdown-digit {
+                font-size: 1.8rem;
+                margin: 0 0.3rem;
+            }
+            .countdown-label {
+                font-size: 0.7rem;
+            }
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, minmax(0, 1fr)); /* Further adjust memory game grid */
+            }
+            .card {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="container">
+        <!-- Countdown Section -->
+        <section id="countdown-section" class="flex flex-col items-center justify-center p-6 bg-pink-50 rounded-xl shadow-inner-lg transition-all duration-500 ease-in-out">
+            <h1 class="text-4xl md:text-5xl font-bold text-pink-700 mb-6 tracking-tight">Counting Down to Your Special Day!</h1>
+            <div class="flex items-end justify-center mb-8">
+                <div>
+                    <div id="days" class="countdown-digit">00</div>
+                    <div class="countdown-label">Days</div>
+                </div>
+                <span class="countdown-digit text-pink-400">:</span>
+                <div>
+                    <div id="hours" class="countdown-digit">00</div>
+                    <div class="countdown-label">Hours</div>
+                </div>
+                <span class="countdown-digit text-pink-400">:</span>
+                <div>
+                    <div id="minutes" class="countdown-digit">00</div>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+                <span class="countdown-digit text-pink-400">:</span>
+                <div>
+                    <div id="seconds" class="countdown-digit">00</div>
+                    <div class="countdown-label">Seconds</div>
+                </div>
+            </div>
+            <p id="countdown-message" class="text-lg text-pink-600 mb-6"></p>
+            <button id="start-game-button" class="game-button px-8 py-3 text-lg hidden">Let's Play!</button>
+        </section>
+
+        <!-- Birthday Message Section (Initially hidden) -->
+        <section id="birthday-message-section" class="hidden flex flex-col items-center justify-center p-8 bg-pink-100 rounded-xl shadow-lg transition-all duration-500 ease-in-out">
+            <h2 class="text-5xl font-extrabold text-pink-800 mb-6 animate-bounce">🥳 Happy Birthday, My Love! 🎂</h2>
+            <p class="text-xl text-pink-700 mb-8 leading-relaxed">
+                On this special day, I want to celebrate you and all the joy you bring into my life.
+                You are truly amazing, and I hope this little game brings a smile to your face.
+                Let's make this day unforgettable! ❤️
+            </p>
+            <button id="proceed-to-games" class="game-button px-8 py-3 text-lg">Start the Love Games!</button>
+        </section>
+
+        <!-- Game Selection and Content Section (Initially hidden) -->
+        <section id="games-section" class="hidden flex flex-col items-center p-6 bg-pink-50 rounded-xl shadow-inner-lg transition-all duration-500 ease-in-out">
+            <h2 class="text-3xl md:text-4xl font-bold text-pink-700 mb-8">Choose Your Love Game!</h2>
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button class="game-button" data-game="why-i-love-you">Why I Love You</button>
+                <button class="game-button" data-game="heart-pop">Heart Pop</button>
+                <button class="game-button" data-game="memory-match">Memory Match</button>
+            </div>
+
+            <!-- Why I Love You Game -->
+            <div id="why-i-love-you-game" class="game-content hidden w-full max-w-md bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-2xl font-semibold text-pink-600 mb-4">Why I Love You ❤️</h3>
+                <p class="text-lg text-gray-700 mb-6 leading-relaxed" id="love-reason-display">
+                    Click the button to discover a reason why my heart beats for you!
+                </p>
+                <button id="next-reason-button" class="game-button">Another Reason!</button>
+            </div>
+
+            <!-- Heart Pop Game -->
+            <div id="heart-pop-game" class="game-content hidden w-full max-w-xl bg-white p-6 rounded-xl shadow-md relative overflow-hidden" style="height: 400px;">
+                <h3 class="text-2xl font-semibold text-pink-600 mb-4">Pop the Hearts! 💖</h3>
+                <p class="text-lg text-gray-700 mb-4">Click on the hearts as they appear to reveal a sweet message!</p>
+                <div id="heart-pop-area" class="absolute inset-0 overflow-hidden">
+                    <!-- Hearts will be dynamically added here -->
+                </div>
+                <div id="heart-pop-message" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-pink-200 text-pink-800 px-4 py-2 rounded-full text-sm opacity-0 transition-opacity duration-300"></div>
+            </div>
+
+            <!-- Memory Match Game -->
+            <div id="memory-match-game" class="game-content hidden w-full max-w-2xl bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-2xl font-semibold text-pink-600 mb-4">Memory Match 🧠</h3>
+                <p class="text-lg text-gray-700 mb-6">Find the matching pairs of love-themed emojis!</p>
+                <div id="memory-grid" class="grid grid-cols-4 gap-4">
+                    <!-- Cards will be dynamically added here -->
+                </div>
+                <p id="match-message" class="text-xl font-semibold text-pink-700 mt-6 hidden">You found a match!</p>
+                <button id="reset-memory-game" class="game-button mt-6 hidden">Play Again</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        // Set your crush's birthday here!
+        // Format: 'YYYY-MM-DDTHH:MM:SS' or 'Month Day, Year HH:MM:SS'
+        // Example: '2025-07-17T00:00:00' for July 17th, 2025, midnight
+        // Example: 'December 25, 2024 00:00:00' for Christmas 2024
+        const BIRTHDAY_DATE = new Date('November 4, 2025 00:00:00').getTime(); // Set this to her actual birthday!
+
+        // Messages for the "Why I Love You" game
+        const LOVE_REASONS = [
+            "Your smile brightens my entire day.",
+            "I love your kindness and compassion for others.",
+            "Your laughter is the most beautiful sound.",
+            "I admire your strength and determination.",
+            "You always know how to make me feel special.",
+            "I love how you light up every room you enter.",
+            "Your intelligence is incredibly attractive.",
+            "I cherish our conversations, big or small.",
+            "You inspire me to be a better person every day.",
+            "I love the way you see the world.",
+            "You make even ordinary moments extraordinary.",
+            "Your presence brings me so much peace and joy.",
+            "I love your unique sense of humor.",
+            "You're simply amazing, inside and out.", // Added missing comma here
+            "Your fish-like round eyes behind the cute pilot framed specs makes the purpose of the life which I am living "
+        ];
+
+        // Emojis for the Memory Match game (must be an even number)
+        const MEMORY_EMOJIS = [
+            '❤️', '🧡', '💛', '💚', '💙', '💜', '💖', '💘',
+            '❤️', '🧡', '?', '💚', '💙', '💜', '💖', '💘'
+        ];
+
+        // Messages for the Heart Pop game
+        const HEART_POP_MESSAGES = [
+            "You're wonderful!",
+            "So sweet!",
+            "My heart!",
+            "You're the best!",
+            "Love you!",
+            "Amazing!",
+            "So true!",
+            "Perfect!",
+            "My sunshine!",
+            "You got this!"
+        ];
+
+        // --- DOM Elements ---
+        const countdownSection = document.getElementById('countdown-section');
+        const birthdayMessageSection = document.getElementById('birthday-message-section');
+        const gamesSection = document.getElementById('games-section');
+        const startGameButton = document.getElementById('start-game-button');
+        const proceedToGamesButton = document.getElementById('proceed-to-games');
+
+        // Countdown elements
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        const countdownMessageEl = document.getElementById('countdown-message');
+
+        // Game navigation buttons
+        const gameButtons = document.querySelectorAll('.game-button[data-game]');
+        const gameContents = document.querySelectorAll('.game-content');
+
+        // Why I Love You Game elements
+        const loveReasonDisplay = document.getElementById('love-reason-display');
+        const nextReasonButton = document.getElementById('next-reason-button');
+        let currentReasonIndex = 0;
+
+        // Heart Pop Game elements
+        const heartPopArea = document.getElementById('heart-pop-area');
+        const heartPopMessage = document.getElementById('heart-pop-message');
+        let heartPopInterval;
+
+        // Memory Match Game elements
+        const memoryGrid = document.getElementById('memory-grid');
+        const matchMessage = document.getElementById('match-message');
+        const resetMemoryGameButton = document.getElementById('reset-memory-game');
+        let shuffledEmojis = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let lockBoard = false; // To prevent clicking more than two cards
+
+        // --- Countdown Logic ---
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = BIRTHDAY_DATE - now;
+
+            // Calculate time components
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Display the countdown
+            daysEl.textContent = String(days).padStart(2, '0');
+            hoursEl.textContent = String(hours).padStart(2, '0');
+            minutesEl.textContent = String(minutes).padStart(2, '0');
+            secondsEl.textContent = String(seconds).padStart(2, '0');
+
+            // If the countdown is over, show birthday message or game
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                countdownSection.classList.add('hidden');
+                birthdayMessageSection.classList.remove('hidden');
+                countdownMessageEl.textContent = "It's your birthday! Time to celebrate!";
+                startGameButton.classList.add('hidden'); // Hide start game button if countdown is over
+            } else {
+                // Show "Let's Play" button if birthday is in the future
+                countdownMessageEl.textContent = "The wait is almost over!";
+                startGameButton.classList.remove('hidden');
+            }
+        }
+
+        // Initial call and set interval for countdown
+        const countdownInterval = setInterval(updateCountdown, 1000);
+        updateCountdown(); // Call immediately to avoid initial delay
+
+        // --- Event Listeners for Navigation ---
+        startGameButton.addEventListener('click', () => {
+            // Hide countdown, show games section
+            countdownSection.classList.add('hidden');
+            gamesSection.classList.remove('hidden');
+            showGame('why-i-love-you'); // Show the first game by default
+        });
+
+        proceedToGamesButton.addEventListener('click', () => {
+            // Hide birthday message, show games section
+            birthdayMessageSection.classList.add('hidden');
+            gamesSection.classList.remove('hidden');
+            showGame('why-i-love-you'); // Show the first game by default
+        });
+
+        gameButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const gameId = button.dataset.game;
+                showGame(gameId);
+            });
+        });
+
+        function showGame(gameId) {
+            // Hide all game content sections
+            gameContents.forEach(content => content.classList.add('hidden'));
+            // Show the selected game content
+            document.getElementById(`${gameId}-game`).classList.remove('hidden');
+
+            // Reset specific games when switching
+            if (gameId === 'heart-pop') {
+                startHeartPopGame();
+            } else {
+                stopHeartPopGame(); // Stop if switching away
+            }
+            if (gameId === 'memory-match') {
+                initMemoryMatchGame();
+            }
+        }
+
+        // --- Why I Love You Game Logic ---
+        nextReasonButton.addEventListener('click', () => {
+            loveReasonDisplay.textContent = LOVE_REASONS[currentReasonIndex];
+            currentReasonIndex = (currentReasonIndex + 1) % LOVE_REASONS.length;
+        });
+
+        // --- Heart Pop Game Logic ---
+        function createHeart() {
+            const heart = document.createElement('span');
+            heart.textContent = '❤️';
+            heart.classList.add('heart-pop-heart');
+
+            // Random position within the heart pop area
+            const areaWidth = heartPopArea.offsetWidth;
+            const areaHeight = heartPopArea.offsetHeight;
+
+            const startX = Math.random() * (areaWidth - 50); // -50 to keep it within bounds
+            const startY = areaHeight; // Start from bottom
+
+            heart.style.left = `${startX}px`;
+            heart.style.top = `${startY}px`;
+
+            heartPopArea.appendChild(heart);
+
+            // Animate heart upwards
+            setTimeout(() => {
+                heart.style.animation = 'floatUp 3s forwards ease-out';
+            }, 10); // Small delay to allow initial positioning
+
+            heart.addEventListener('click', () => {
+                heart.classList.add('popped');
+                showHeartPopMessage(HEART_POP_MESSAGES[Math.floor(Math.random() * HEART_POP_MESSAGES.length)]);
+                // Remove heart after animation
+                heart.addEventListener('transitionend', () => heart.remove());
+            });
+
+            // Remove heart if it reaches the top without being popped
+            setTimeout(() => {
+                if (heart.parentNode) {
+                    heart.remove();
+                }
+            }, 3000); // Matches animation duration
+        }
+
+        function startHeartPopGame() {
+            // Clear any existing hearts
+            heartPopArea.innerHTML = '';
+            // Start spawning hearts every 1-2 seconds
+            heartPopInterval = setInterval(createHeart, 1000 + Math.random() * 1000);
+        }
+
+        function stopHeartPopGame() {
+            clearInterval(heartPopInterval);
+            heartPopArea.innerHTML = ''; // Clear hearts
+        }
+
+        function showHeartPopMessage(message) {
+            heartPopMessage.textContent = message;
+            heartPopMessage.classList.remove('opacity-0');
+            heartPopMessage.classList.add('opacity-100');
+            setTimeout(() => {
+                heartPopMessage.classList.remove('opacity-100');
+                heartPopMessage.classList.add('opacity-0');
+            }, 1500); // Message visible for 1.5 seconds
+        }
+
+        // --- Memory Match Game Logic ---
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createBoard() {
+            memoryGrid.innerHTML = ''; // Clear previous board
+            shuffledEmojis = shuffle([...MEMORY_EMOJIS]); // Create a shuffled copy
+
+            shuffledEmojis.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card', 'bg-pink-300', 'hover:bg-pink-400', 'shadow-md', 'transition-all', 'duration-200');
+                card.dataset.index = index;
+                card.dataset.emoji = emoji; // Store emoji for matching
+                card.innerHTML = `<span class="hidden">${emoji}</span>`; // Hidden initially
+
+                card.addEventListener('click', flipCard);
+                memoryGrid.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return; // Prevent clicks if two cards are already flipped
+            if (this === flippedCards[0]) return; // Prevent clicking the same card twice
+
+            this.classList.add('flipped');
+            this.querySelector('span').classList.remove('hidden'); // Show emoji
+
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                lockBoard = true; // Lock board after two cards are flipped
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            const isMatch = card1.dataset.emoji === card2.dataset.emoji;
+
+            if (isMatch) {
+                disableCards();
+                matchedPairs++;
+                matchMessage.textContent = "You found a match!";
+                matchMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    matchMessage.classList.add('hidden');
+                }, 1000);
+
+                if (matchedPairs === MEMORY_EMOJIS.length / 2) {
+                    setTimeout(() => {
+                        alertMessage("Congratulations! You've found all the pairs! 🎉");
+                        resetMemoryGameButton.classList.remove('hidden');
+                    }, 500);
+                }
+            } else {
+                unflipCards();
+            }
+        }
+
+        function disableCards() {
+            flippedCards[0].removeEventListener('click', flipCard);
+            flippedCards[1].removeEventListener('click', flipCard);
+            flippedCards[0].classList.add('matched');
+            flippedCards[1].classList.add('matched');
+            resetBoard();
+        }
+
+        function unflipCards() {
+            setTimeout(() => {
+                flippedCards[0].classList.remove('flipped');
+                flippedCards[1].classList.remove('flipped');
+                flippedCards[0].querySelector('span').classList.add('hidden');
+                flippedCards[1].querySelector('span').classList.add('hidden');
+                resetBoard();
+            }, 1000); // Keep cards visible for 1 second before flipping back
+        }
+
+        function resetBoard() {
+            [flippedCards, lockBoard] = [[], false];
+        }
+
+        function initMemoryMatchGame() {
+            matchedPairs = 0;
+            resetMemoryGameButton.classList.add('hidden');
+            createBoard();
+        }
+
+        resetMemoryGameButton.addEventListener('click', initMemoryMatchGame);
+
+        // --- Custom Alert/Message Box (instead of window.alert) ---
+        function alertMessage(message) {
+            const existingModal = document.getElementById('custom-modal');
+            if (existingModal) existingModal.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'custom-modal';
+            modal.classList.add('fixed', 'inset-0', 'bg-gray-800', 'bg-opacity-75', 'flex', 'items-center', 'justify-center', 'z-50', 'p-4');
+            modal.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center transform scale-95 opacity-0 transition-all duration-300 ease-out" id="modal-content">
+                    <p class="text-2xl font-bold text-pink-700 mb-6">${message}</p>
+                    <button class="game-button px-6 py-2" id="modal-close-button">Got It!</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Animate in
+            setTimeout(() => {
+                document.getElementById('modal-content').classList.remove('scale-95', 'opacity-0');
+                document.getElementById('modal-content').classList.add('scale-100', 'opacity-100');
+            }, 10);
+
+            document.getElementById('modal-close-button').addEventListener('click', () => {
+                // Animate out
+                document.getElementById('modal-content').classList.remove('scale-100', 'opacity-100');
+                document.getElementById('modal-content').classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.remove();
+                }, 300);
+            });
+        }
+
+        // Initialize the first game when the page loads if birthday has passed or is today
+        window.onload = function() {
+            updateCountdown(); // Run once to check initial state
+
+            // If birthday has passed or is today, directly show the birthday message or games
+            const now = new Date().getTime();
+            if (BIRTHDAY_DATE - now <= 0) {
+                clearInterval(countdownInterval); // Stop countdown
+                countdownSection.classList.add('hidden');
+                birthdayMessageSection.classList.remove('hidden');
+            }
+            // Otherwise, countdown will be visible and `startGameButton` will handle transition
+        };
+
+    </script>
+</body>
+</html>
